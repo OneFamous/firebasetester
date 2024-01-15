@@ -39,8 +39,61 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   TextEditingController _ekleController = TextEditingController();
+  TextEditingController _surnameController = TextEditingController();
   TextEditingController _cikarController = TextEditingController();
 
+  TextEditingController _textFieldPopUp = TextEditingController();
+  String userInput = '';
+
+  void _clearInput() {
+    _textFieldPopUp.clear();
+    userInput = '';
+    setState(() {});
+  }
+
+  void _showInputDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter your input'),
+          content: TextField(
+            controller: _textFieldPopUp,
+            decoration: InputDecoration(hintText: 'Type something...'),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Kullanıcı girişi alındıktan sonra popup'ı kapat
+                // Girişi kullanmak için burada gerekli işlemleri yapabilirsiniz
+                userInput = _textFieldPopUp.text;
+                userInput = _textFieldPopUp.text;
+                setState(() {});
+              },
+              child: Text('OK'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // İptal butonuna basıldığında popup'ı kapat
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _clearInput();
+                Navigator.of(context).pop();
+              },
+              child: Text('Clear'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //-------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,8 +106,14 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _ekleController,
             decoration: InputDecoration(labelText: 'Eklenecek İsim'),
           ),
+          TextField(
+            controller: _surnameController,
+            decoration: InputDecoration(
+                labelText: 'Eklenecek Soyisim'), // Add this field
+          ),
           ElevatedButton(
-            onPressed: () => _addToFirestore(_ekleController.text),
+            onPressed: () =>
+                _addToFirestore(_ekleController.text, _surnameController.text),
             child: Text('Ekle'),
           ),
           TextField(
@@ -96,11 +155,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     var documentData =
                         documents[index].data() as Map<String, dynamic>;
                     var alanAdi = documentData['isim'];
+                    var soyisim = documentData['soyisim'];
 
                     return Column(
                       children: [
                         ListTile(
-                          title: Text('Firebase Verisi: $alanAdi'),
+                          title: Text('Firebase Verisi: $alanAdi $soyisim'),
                         ),
                       ],
                     );
@@ -109,20 +169,29 @@ class _MyHomePageState extends State<MyHomePage> {
               );
             },
           ),
+          Text('Kullanıcın girdiği text: $userInput'),
+          const SizedBox(
+            height: 20,
+          ),
+          ElevatedButton(
+            onPressed: _showInputDialog,
+            child: Text('Open Input Dialog'),
+          ),
         ],
       ),
     );
   }
 
-  void _addToFirestore(String isim) async {
+  void _addToFirestore(String name, String surname) async {
     try {
       await _firestore.collection('koleksiyon').add({
-        'isim': isim,
+        'isim': name,
+        'soyisim': surname, // Add the surname field
         // Add other fields as needed
       });
-
-      // Clear the text field after adding to Firestore
+      // Clear the text fields after adding to Firestore
       _ekleController.clear();
+      _surnameController.clear();
     } catch (e) {
       print('Hata oluştu: $e');
     }
