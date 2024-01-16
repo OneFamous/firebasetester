@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase/firebase_options.dart';
+import 'package:firebase/loginPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Firebase Veri İşlemleri'),
+      home: LoginPage(),
     );
   }
 }
@@ -42,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _surnameController = TextEditingController();
   TextEditingController _cikarController = TextEditingController();
 
-  TextEditingController _textFieldPopUp = TextEditingController();
+/*  TextEditingController _textFieldPopUp = TextEditingController();
   String userInput = '';
 
   void _clearInput() {
@@ -68,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     .pop(); // Kullanıcı girişi alındıktan sonra popup'ı kapat
                 // Girişi kullanmak için burada gerekli işlemleri yapabilirsiniz
                 userInput = _textFieldPopUp.text;
-                userInput = _textFieldPopUp.text;
                 setState(() {});
               },
               child: Text('OK'),
@@ -91,8 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
-  }
-
+  } */
   //-------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
@@ -125,8 +124,10 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text('Çıkar'),
           ),
           StreamBuilder<QuerySnapshot>(
-            stream:
-                _firestore.collection('koleksiyon').orderBy('isim').snapshots(),
+            stream: _firestore
+                .collection('koleksiyon')
+                .orderBy('isim')
+                .snapshots(), //where muhabbeti buraya geliyor
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -168,14 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               );
             },
-          ),
-          Text('Kullanıcın girdiği text: $userInput'),
-          const SizedBox(
-            height: 20,
-          ),
-          ElevatedButton(
-            onPressed: _showInputDialog,
-            child: Text('Open Input Dialog'),
           ),
         ],
       ),
