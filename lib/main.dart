@@ -13,7 +13,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key, required this.title});
+  MyHomePage({Key? key, required this.title});
 
   final String title;
 
@@ -43,56 +43,9 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController _surnameController = TextEditingController();
   TextEditingController _cikarController = TextEditingController();
 
-/*  TextEditingController _textFieldPopUp = TextEditingController();
-  String userInput = '';
+  TextEditingController _guncellenecekController = TextEditingController();
+  TextEditingController _yeniIsimController = TextEditingController();
 
-  void _clearInput() {
-    _textFieldPopUp.clear();
-    userInput = '';
-    setState(() {});
-  }
-
-  void _showInputDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Enter your input'),
-          content: TextField(
-            controller: _textFieldPopUp,
-            decoration: InputDecoration(hintText: 'Type something...'),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Kullanıcı girişi alındıktan sonra popup'ı kapat
-                // Girişi kullanmak için burada gerekli işlemleri yapabilirsiniz
-                userInput = _textFieldPopUp.text;
-                setState(() {});
-              },
-              child: Text('OK'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context)
-                    .pop(); // İptal butonuna basıldığında popup'ı kapat
-              },
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _clearInput();
-                Navigator.of(context).pop();
-              },
-              child: Text('Clear'),
-            ),
-          ],
-        );
-      },
-    );
-  } */
-  //-------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,6 +75,19 @@ class _MyHomePageState extends State<MyHomePage> {
           ElevatedButton(
             onPressed: () => _deleteFromFirestore(_cikarController.text),
             child: Text('Çıkar'),
+          ),
+          TextField(
+            controller: _guncellenecekController,
+            decoration: InputDecoration(labelText: 'Güncellenecek İsim'),
+          ),
+          TextField(
+            controller: _yeniIsimController,
+            decoration: InputDecoration(labelText: 'Yeni İsim'),
+          ),
+          ElevatedButton(
+            onPressed: () => _updateFirestore(
+                _guncellenecekController.text, _yeniIsimController.text),
+            child: Text('Güncelle'),
           ),
           StreamBuilder<QuerySnapshot>(
             stream: _firestore
@@ -155,13 +121,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemBuilder: (context, index) {
                     var documentData =
                         documents[index].data() as Map<String, dynamic>;
-                    var alanAdi = documentData['isim'];
+                    var isim = documentData['isim'];
                     var soyisim = documentData['soyisim'];
 
                     return Column(
                       children: [
                         ListTile(
-                          title: Text('Firebase Verisi: $alanAdi $soyisim'),
+                          title: Text('Firebase Verisi: $isim $soyisim'),
                         ),
                       ],
                     );
@@ -195,14 +161,6 @@ class _MyHomePageState extends State<MyHomePage> {
       QuerySnapshot querySnapshot =
           await _firestore.collection('koleksiyon').get();
 
-      /*QuerySnapshot querySnapshot = await _firestore
-          .collection('koleksiyon')
-          .where('isimLowerCase', isEqualTo: isim)
-          .get();
-          querySnapshot.docs.forEach((doc) {
-      doc.reference.delete();
-      });*/
-
       querySnapshot.docs.forEach((doc) {
         var documentData = doc.data() as Map<String, dynamic>;
         var belgeIsmi = documentData['isim'];
@@ -215,6 +173,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // Clear the text field after deleting from Firestore
       _cikarController.clear();
+    } catch (e) {
+      print('Hata oluştu: $e');
+    }
+  }
+
+  void _updateFirestore(String oldName, String newName) async {
+    try {
+      QuerySnapshot querySnapshot =
+          await _firestore.collection('koleksiyon').get();
+
+      querySnapshot.docs.forEach((doc) {
+        var documentData = doc.data() as Map<String, dynamic>;
+        var belgeIsmi = documentData['isim'];
+
+        if (belgeIsmi.toString().toLowerCase() == oldName.toLowerCase()) {
+          doc.reference.update({'isim': newName});
+        }
+      });
+
+      // Clear the text fields after updating in Firestore
+      _guncellenecekController.clear();
+      _yeniIsimController.clear();
     } catch (e) {
       print('Hata oluştu: $e');
     }
